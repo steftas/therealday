@@ -3,7 +3,7 @@ import VueRouter from "vue-router";
 import Login from "../views/Login.vue";
 import Jobs from "../views/Jobs.vue";
 import NotFound from "../views/NotFound.vue";
-import { getLocalStorage } from "../plugins/authContext";
+import store from "../store/index";
 
 Vue.use(VueRouter);
 
@@ -35,12 +35,12 @@ const router = new VueRouter({
 });
 
 router.beforeEach((to, from, next) => {
-  const data = getLocalStorage("auth");
-  const currentUser = data?.token;
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
-
-  if (requiresAuth && !currentUser) {
-    next("login");
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
+    if (store.getters.isLoggedIn) {
+      next();
+      return;
+    }
+    next("/login");
   } else {
     next();
   }

@@ -1,5 +1,7 @@
 <template>
   <v-app>
+    <Alert />
+
     <!-- Sizes your content based upon application components -->
     <v-main>
       <!-- Provides the application the proper gutter -->
@@ -15,10 +17,12 @@
 
 <script>
 import Footer from "@/components/Footer.vue";
+import Alert from "@/components/Alert.vue";
 
 export default {
   components: {
     Footer,
+    Alert,
   },
 };
 </script>

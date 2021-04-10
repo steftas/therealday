@@ -42,8 +42,6 @@
 <script>
 import { validationMixin } from "vuelidate";
 import { required, email } from "vuelidate/lib/validators";
-import http from "../plugins/axios";
-import { setLocalStorage } from "@/plugins/authContext";
 
 export default {
   name: "LoginForm",
@@ -84,16 +82,15 @@ export default {
           password: this.password,
         };
 
-        http
-          .post("auth/login", data)
-          .then((response) => {
-            setLocalStorage("auth", response.data);
+        this.$store
+          .dispatch("login", data)
+          .then(() => {
             this.loading = false;
-            this.$router.push("jobs");
+            this.$router.push("/jobs");
           })
-          .catch((e) => {
+          .catch((err) => {
+            this.$store.dispatch("showError", err);
             this.loading = false;
-            console.log("error", e);
           });
       }
     },

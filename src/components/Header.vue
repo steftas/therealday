@@ -4,19 +4,33 @@
 
     <v-spacer></v-spacer>
 
-    <v-btn icon @click="logout">
-      <v-icon>mdi-logout</v-icon>
-    </v-btn>
+    <v-toolbar-title>{{ user.email }}</v-toolbar-title>
+
+    <v-tooltip bottom>
+      <template v-slot:activator="{ on, attrs }">
+        <v-btn icon @click="logout" v-bind="attrs" v-on="on">
+          <v-icon>mdi-logout</v-icon>
+        </v-btn>
+      </template>
+      <span>Logout</span>
+    </v-tooltip>
   </v-app-bar>
 </template>
 
 <script>
 export default {
   name: "Header",
+  computed: {
+    user() {
+      return this.$store.getters.getUser || {};
+    },
+  },
   methods: {
     logout() {
-      localStorage.clear();
-      this.$router.push("/login");
+      this.$store
+        .dispatch("logout")
+        .then(() => {})
+        .catch((err) => console.log(err));
     },
   },
 };

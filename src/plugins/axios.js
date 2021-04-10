@@ -1,6 +1,6 @@
 /* eslint-disable no-prototype-builtins */
 import axios from "axios";
-import { getLocalStorage } from "./authContext";
+import store from "../store/index";
 
 const http = axios.create({
   baseURL: `https://dvapi.tempest.app/api/v1/`,
@@ -11,11 +11,11 @@ const isHandlerEnabled = (config = {}) =>
 
 const requestHandler = (request) => {
   if (isHandlerEnabled(request)) {
-    const data = getLocalStorage("auth");
+    const data = store.getters.getToken;
 
     // Modify request here
     if (!request.url.includes("login")) {
-      request.headers.Authorization = `Bearer ${data.token}`;
+      request.headers.Authorization = `Bearer ${data}`;
     }
   }
   return request;
@@ -24,13 +24,15 @@ const requestHandler = (request) => {
 const errorHandler = async (error) => {
   if (
     error.config &&
-    !(error.config.url === "login") &&
+    !error.config.url.includes("login") &&
     isHandlerEnabled(error.config)
   ) {
     // Redirect to login if unauthorized
-    if (error.response.status === 401) {
-      localStorage.clear();
-      window.location.href = "/login";
+    if (error.response.status === 401 && !error.config.__isRetryRequest) {
+      store
+        .dispatch("logout")
+        .then(() => {})
+        .catch((err) => console.log(err));
       return Promise.reject(error);
     }
   }

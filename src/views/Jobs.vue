@@ -9,14 +9,32 @@
 
           <v-data-table
             :headers="headers"
-            :items="jobs.items"
+            :items="jobs.data"
             item-key="id"
             class="elevation-1"
             :server-items-length="totalJobs"
             :options.sync="options"
             :footer-props="footerProps"
             :loading="loading"
+            loading-text="Loading... Please wait"
           >
+            <template v-slot:item="props">
+              <tr>
+                <td>
+                  {{
+                    props.item.user.first_name + " " + props.item.user.last_name
+                  }}
+                </td>
+                <td>{{ props.item.jobRequest.jobType.name }}</td>
+                <td>{{ props.item.client.name }}</td>
+                <td>
+                  {{ props.item.start_time | dateFormat("DD MMM, YYYY HH:mm") }}
+                </td>
+                <td>
+                  {{ props.item.end_time | dateFormat("DD MMM, YYYY HH:mm") }}
+                </td>
+              </tr>
+            </template>
           </v-data-table>
         </div>
       </v-col>
@@ -27,7 +45,6 @@
 <script>
 import http from "../plugins/axios";
 import Header from "@/components/Header";
-import moment from "moment";
 
 export default {
   name: "Jobs",
@@ -73,9 +90,6 @@ export default {
       deep: true,
     },
   },
-  mounted() {
-    this.onGetJobs();
-  },
   methods: {
     onGetJobs() {
       this.loading = true;
@@ -86,25 +100,13 @@ export default {
       http
         .get(`jobs${params}`)
         .then((response) => {
-          this.jobs = { ...response.data, items: [] };
-
-          response.data.data.forEach((item) => {
-            const data = {
-              id: item.id,
-              name: item.user?.first_name + " " + item.user?.last_name,
-              job: item.jobRequest?.jobType?.name,
-              client: item.client?.name,
-              startTime: moment(item.start_time).format("DD MMM, YYYY HH:mm"),
-              endTime: moment(item.end_time).format("DD MMM, YYYY HH:mm"),
-            };
-            this.jobs.items.push(data);
-          });
-
+          this.jobs = { ...response.data };
           this.loading = false;
           this.totalJobs = this.jobs.meta.pagination.total;
         })
-        .catch((e) => {
-          console.log("error", e);
+        .catch((err) => {
+          this.$store.dispatch("showError", err);
+          this.loading = false;
         });
     },
   },
